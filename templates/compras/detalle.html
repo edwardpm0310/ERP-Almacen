@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% block title %}Detalle Compra #{{ compra.id }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2>Detalle de Compra #{{ compra.id }}</h2>
+    <p><strong>Proveedor:</strong> {{ compra.proveedor.nombre }}</p>
+    <p><strong>Fecha:</strong> {{ compra.fecha.strftime('%d/%m/%Y %H:%M') }}</p>
+    <p><strong>Total:</strong> S/ {{ compra.total | round(2) }}</p>
+
+    <h4>Productos Comprados</h4>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Producto</th>
+                <th>Cantidad</th>
+                <th>Precio Unitario</th>
+                <th>Subtotal</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for d in compra.detalles %}
+            <tr>
+                <td>{{ d.producto.nombre }}</td>
+                <td>{{ d.cantidad }}</td>
+                <td>S/ {{ d.precio_unitario }}</td>
+                <td>S/ {{ (d.cantidad * d.precio_unitario) | round(2) }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    
+    <a href="{{ url_for('compras') }}" class="btn btn-secondary">Volver</a>
+</div>
+{% endblock %}

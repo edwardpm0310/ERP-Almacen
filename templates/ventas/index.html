@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+{% block title %}Ventas - ERP Almacén{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>💰 Registro de Ventas</h2>
+        <a href="{{ url_for('crear_venta') }}" class="btn btn-success">
+            <i class="bi bi-plus-lg"></i> Nueva Venta
+        </a>
+    </div>
+
+    <!-- Buscador -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="GET" class="row g-3">
+                <div class="col-md-6">
+                    <input type="text" name="search" value="{{ search or '' }}" 
+                           class="form-control" placeholder="Buscar por cliente o número de venta...">
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100">Buscar</button>
+                </div>
+                <div class="col-md-2">
+                    <a href="{{ url_for('ventas') }}" class="btn btn-secondary w-100">Limpiar</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <table class="table table-striped table-hover align-middle">
+        <thead class="table-dark">
+            <tr>
+                <th>ID</th>
+                <th>Fecha</th>
+                <th>Cliente</th>
+                <th>Total</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for v in ventas %}
+            <tr>
+                <td><strong>#{{ v.id }}</strong></td>
+                <td>{{ v.fecha.strftime('%d/%m/%Y %H:%M') }}</td>
+                <td>{{ v.cliente.nombre if v.cliente else '-' }}</td>
+                <td><strong>S/ {{ v.total | round(2) }}</strong></td>
+                <td>
+                    <a href="{{ url_for('agregar_detalle_venta', venta_id=v.id) }}" 
+                       class="btn btn-sm btn-primary">
+                        Agregar Productos
+                    </a>
+                    <a href="{{ url_for('detalle_venta', venta_id=v.id) }}" 
+                       class="btn btn-sm btn-info">
+                        Ver Detalle
+                    </a>
+                    <a href="{{ url_for('anular_venta', venta_id=v.id) }}" 
+                        class="btn btn-sm btn-danger"
+                        onclick="return confirm('¿Estás seguro de ANULAR esta venta? Se devolverá el stock.')">
+                        Anular Venta
+                    </a>        
+                </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="5" class="text-center py-4">No hay ventas registradas todavía</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

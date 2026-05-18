@@ -1,0 +1,97 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard - ERP Almacén{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <h1 class="mb-4">📊 Dashboard Principal</h1>
+
+    <div class="row g-4">
+        <div class="col-xl-3 col-md-6">
+            <div class="card text-white bg-primary shadow-sm border-0">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h5>Total Productos</h5>
+                            <h2 class="mb-0">{{ total_productos }}</h2>
+                        </div>
+                        <i class="bi bi-box-seam fs-1 opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card text-white bg-warning shadow-sm border-0">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h5>Stock Bajo</h5>
+                            <h2 class="mb-0">{{ stock_bajo }}</h2>
+                        </div>
+                        <i class="bi bi-exclamation-triangle fs-1 opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card text-white bg-success shadow-sm border-0">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h5>Valor Inventario</h5>
+                            <h2 class="mb-0">S/ {{ valor_inventario | round(2) }}</h2>
+                        </div>
+                        <i class="bi bi-currency-dollar fs-1 opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card text-white bg-info shadow-sm border-0">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h5>Proveedores</h5>
+                            <h2 class="mb-0">{{ total_proveedores or 0 }}</h2>
+                        </div>
+                        <i class="bi bi-people fs-1 opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Productos con stock bajo -->
+    <div class="mt-5">
+        <h4 class="mb-3">⚠️ Productos con Stock Crítico</h4>
+        <table class="table table-striped table-hover">
+            <thead class="table-dark">
+                <tr>
+                    <th>Código</th>
+                    <th>Producto</th>
+                    <th>Stock Actual</th>
+                    <th>Mínimo</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for p in productos_bajos %}
+                <tr class="table-warning">
+                    <td>{{ p.codigo }}</td>
+                    <td>{{ p.nombre }}</td>
+                    <td class="fw-bold">{{ p.stock }}</td>
+                    <td>{{ p.stock_minimo }}</td>
+                    <td>
+                        <a href="{{ url_for('ajuste_stock', id=p.id) }}" class="btn btn-sm btn-primary">Ajustar</a>
+                    </td>
+                </tr>
+                {% else %}
+                <tr><td colspan="5" class="text-center py-4">✅ No hay productos con stock bajo</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

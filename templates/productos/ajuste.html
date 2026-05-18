@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+{% block title %}Ajuste de Stock - {{ producto.nombre }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="card shadow">
+        <div class="card-header bg-primary text-white">
+            <h4>Ajuste de Stock - {{ producto.nombre }} ({{ producto.codigo }})</h4>
+        </div>
+        <div class="card-body">
+            <p><strong>Stock Actual:</strong> <span class="fs-4 fw-bold">{{ producto.stock }} unidades</span></p>
+
+            <form method="POST">
+                <div class="mb-3">
+                    <label class="form-label">Tipo de Ajuste</label><br>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="tipo" value="entrada" checked>
+                        <label class="form-check-label">➕ Entrada (Agregar stock)</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="tipo" value="salida">
+                        <label class="form-check-label">➖ Salida (Restar stock)</label>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Cantidad</label>
+                    <input type="number" name="cantidad" class="form-control" min="1" value="1" required>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Motivo / Observación</label>
+                    <textarea name="motivo" class="form-control" rows="3" placeholder="Ej: Conteo físico, producto dañado, corrección..."></textarea>
+                </div>
+
+                <button type="submit" class="btn btn-success">Guardar Ajuste</button>
+                <a href="{{ url_for('productos') }}" class="btn btn-secondary">Cancelar</a>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

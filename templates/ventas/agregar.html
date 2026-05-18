@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+{% block title %}Agregar Productos - Venta #{{ venta.id }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2>Agregar Productos a Venta #{{ venta.id }}</h2>
+    <p><strong>Cliente:</strong> {{ venta.cliente.nombre }}</p>
+    <p><strong>Total Actual:</strong> <strong>S/ {{ venta.total | round(2) }}</strong></p>
+
+    <form method="POST" class="mt-4" id="ventaForm">
+        <div class="mb-3">
+            <label>Producto</label>
+            <select name="producto_id" id="producto_id" class="form-control" required>
+                <option value="">-- Seleccione Producto --</option>
+                {% for p in productos %}
+                <option value="{{ p.id }}" 
+                        data-precio="{{ p.precio_venta }}">
+                    {{ p.codigo }} - {{ p.nombre }} (Stock: {{ p.stock }})
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="row">
+            <div class="col-md-4 mb-3">
+                <label>Cantidad</label>
+                <input type="number" name="cantidad" id="cantidad" class="form-control" min="1" value="1" required>
+            </div>
+            <div class="col-md-4 mb-3">
+                <label>Precio Unitario (S/)</label>
+                <input type="number" step="0.01" name="precio_unitario" id="precio_unitario" 
+                       class="form-control" required>
+            </div>
+        </div>
+
+        <button type="submit" class="btn btn-success">Agregar Producto</button>
+        <a href="{{ url_for('ventas') }}" class="btn btn-secondary">Finalizar Venta</a>
+    </form>
+</div>
+
+<script>
+    document.getElementById('producto_id').addEventListener('change', function() {
+        const selectedOption = this.options[this.selectedIndex];
+        const precio = selectedOption.getAttribute('data-precio');
+        
+        if (precio) {
+            document.getElementById('precio_unitario').value = parseFloat(precio).toFixed(2);
+        }
+    });
+</script>
+{% endblock %}

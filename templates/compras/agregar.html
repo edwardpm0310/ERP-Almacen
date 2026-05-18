@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% block title %}Agregar Producto - Compra {{ compra.id }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2>Agregar Producto a Compra #{{ compra.id }}</h2>
+    <p><strong>Proveedor:</strong> {{ compra.proveedor.nombre }}</p>
+
+    <form method="POST" class="mt-4">
+        <div class="mb-3">
+            <label>Producto</label>
+            <select name="producto_id" class="form-control" required>
+                <option value="">-- Seleccione Producto --</option>
+                {% for p in productos %}
+                <option value="{{ p.id }}">{{ p.codigo }} - {{ p.nombre }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="row">
+            <div class="col-md-4 mb-3">
+                <label>Cantidad</label>
+                <input type="number" name="cantidad" class="form-control" min="1" value="1" required>
+            </div>
+            <div class="col-md-4 mb-3">
+                <label>Precio Unitario (S/)</label>
+                <input type="number" step="0.01" name="precio_unitario" class="form-control" required>
+            </div>
+        </div>
+
+        <button type="submit" class="btn btn-success">Agregar Producto</button>
+        <a href="{{ url_for('compras') }}" class="btn btn-secondary">Volver</a>
+    </form>
+</div>
+{% endblock %}

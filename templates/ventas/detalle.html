@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+{% block title %}Detalle de Venta #{{ venta.id }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2>Detalle de Venta #{{ venta.id }}</h2>
+    
+    <div class="card mb-4">
+        <div class="card-body">
+            <p><strong>Cliente:</strong> {{ venta.cliente.nombre }}</p>
+            <p><strong>Fecha:</strong> {{ venta.fecha.strftime('%d/%m/%Y %H:%M') }}</p>
+            <p><strong>Total General:</strong> <strong>S/ {{ venta.total | round(2) }}</strong></p>
+        </div>
+    </div>
+
+    <h4>Productos Vendidos</h4>
+    <table class="table table-striped table-hover">
+        <thead class="table-dark">
+            <tr>
+                <th>Producto</th>
+                <th>Cantidad</th>
+                <th>Precio Unitario</th>
+                <th>Subtotal</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for d in venta.detalles %}
+            <tr>
+                <td>{{ d.producto.nombre }} ({{ d.producto.codigo }})</td>
+                <td>{{ d.cantidad }}</td>
+                <td>S/ {{ d.precio_unitario | round(2) }}</td>
+                <td><strong>S/ {{ (d.cantidad * d.precio_unitario) | round(2) }}</strong></td>
+            </tr>
+            {% else %}
+            <tr><td colspan="4" class="text-center">No hay productos en esta venta</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <a href="{{ url_for('ventas') }}" class="btn btn-secondary">Volver al Listado</a>
+</div>
+{% endblock %}
