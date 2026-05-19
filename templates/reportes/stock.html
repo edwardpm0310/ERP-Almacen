@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% block title %}Reporte de Stock{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>📦 Reporte de Stock Actual</h2>
+        <a href="{{ url_for('export_stock_excel') }}" class="btn btn-success">
+            <i class="bi bi-file-earmark-excel"></i> Exportar a Excel
+        </a>
+    </div>
+
+    <!-- Filtro -->
+    <div class="mb-4">
+        <a href="{{ url_for('reporte_stock') }}" class="btn btn-secondary">Todos</a>
+        <a href="{{ url_for('reporte_stock', stock_bajo=1) }}" class="btn btn-warning">Solo Stock Bajo</a>
+    </div>
+
+    <table class="table table-striped table-hover">
+        <thead class="table-dark">
+            <tr>
+                <th>Código</th>
+                <th>Producto</th>
+                <th>Stock Actual</th>
+                <th>Stock Mínimo</th>
+                <th>Estado</th>
+                <th>Precio Venta</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for p in productos %}
+            <tr>
+                <td><strong>{{ p.codigo }}</strong></td>
+                <td>{{ p.nombre }}</td>
+                <td class="fw-bold">{{ p.stock }}</td>
+                <td>{{ p.stock_minimo }}</td>
+                <td>
+                    {% if p.stock == 0 %}<span class="badge bg-danger">Sin Stock</span>
+                    {% elif p.stock <= p.stock_minimo %}<span class="badge bg-warning">Stock Bajo</span>
+                    {% else %}<span class="badge bg-success">Normal</span>{% endif %}
+                </td>
+                <td>S/ {{ p.precio_venta | round(2) }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}  

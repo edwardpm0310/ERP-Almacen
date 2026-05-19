@@ -1,5 +1,7 @@
-from flask import Flask, render_template, redirect, url_for, request, flash
+from flask import Flask, render_template, redirect, url_for, request, flash, send_file
 from config import Config
+import pandas as pd
+from io import BytesIO
 from models import db, Proveedor, Producto, Compra, DetalleCompra, Cliente, Venta, DetalleVenta
 app = Flask(__name__)
 app.config.from_object(Config)
@@ -389,6 +391,118 @@ def eliminar_cliente(id):
     db.session.commit()
     flash('Cliente eliminado correctamente', 'danger')
     return redirect(url_for('clientes'))
+
+# ===================== REPORTES =====================
+
+@app.route('/reportes/stock')
+def reporte_stock():
+    stock_bajo = request.args.get('stock_bajo')  # Filtro
+    
+    query = Producto.query.order_by(Producto.stock)
+    
+    if stock_bajo:
+        query = query.filter(Producto.stock <= Producto.stock_minimo)
+    
+    productos = query.all()
+    return render_template('reportes/stock.html', productos=productos, stock_bajo=stock_bajo)
+
+@app.route('/reportes/compras')
+def reporte_compras():
+    compras = Compra.query.order_by(Compra.fecha.desc()).all()
+    return render_template('reportes/compras.html', compras=compras)
+
+@app.route('/reportes/ventas')
+def reporte_ventas():
+    ventas = Venta.query.order_by(Venta.fecha.desc()).all()
+    return render_template('reportes/ventas.html', ventas=ventas)
+
+@app.route('/reportes/utilidad')
+def reporte_utilidad():
+    ventas = Venta.query.order_by(Venta.fecha.desc()).all()
+    
+    total_ventas = sum(v.total for v in ventas)
+    total_costo = 0
+    
+    for v in ventas:
+        for d in v.detalles:
+            # Buscamos el precio de compra del producto
+            producto = d.producto
+            total_costo += d.cantidad * producto.precio_compra
+    
+    utilidad = total_ventas - total_costo
+    
+    return render_template('reportes/utilidad.html', 
+                           ventas=ventas, 
+                           total_ventas=total_ventas,
+                           total_costo=total_costo,
+                           utilidad=utilidad)
+
+# ===================== EXPORTACIÓN A EXCEL =====================
+
+@app.route('/reportes/stock/export')
+def export_stock_excel():
+    productos = Producto.query.all()
+    
+    data = []
+    for p in productos:
+        data.append({
+            'Código': p.codigo,
+            'Nombre': p.nombre,
+            'Stock Actual': p.stock,
+            'Stock Mínimo': p.stock_minimo,
+            'Precio Compra': p.precio_compra,
+            'Precio Venta': p.precio_venta,
+            'Valor Total': p.stock * p.precio_compra
+        })
+    
+    df = pd.DataFrame(data)
+    output = BytesIO()
+    df.to_excel(output, index=False, sheet_name='Stock')
+    output.seek(0)
+    
+    return send_file(output, download_name="Reporte_Stock.xlsx", as_attachment=True)
+
+
+@app.route('/reportes/compras/export')
+def export_compras_excel():
+    compras = Compra.query.order_by(Compra.fecha.desc()).all()
+    
+    data = []
+    for c in compras:
+        data.append({
+            'ID': c.id,
+            'Fecha': c.fecha.strftime('%d/%m/%Y %H:%M'),
+            'Proveedor': c.proveedor.nombre if c.proveedor else '',
+            'Total': c.total
+        })
+    
+    df = pd.DataFrame(data)
+    output = BytesIO()
+    df.to_excel(output, index=False, sheet_name='Compras')
+    output.seek(0)
+    
+    return send_file(output, download_name="Reporte_Compras.xlsx", as_attachment=True)
+
+
+@app.route('/reportes/ventas/export')
+def export_ventas_excel():
+    ventas = Venta.query.order_by(Venta.fecha.desc()).all()
+    
+    data = []
+    for v in ventas:
+        data.append({
+            'ID': v.id,
+            'Fecha': v.fecha.strftime('%d/%m/%Y %H:%M'),
+            'Cliente': v.cliente.nombre if v.cliente else '',
+            'Total': v.total
+        })
+    
+    df = pd.DataFrame(data)
+    output = BytesIO()
+    df.to_excel(output, index=False, sheet_name='Ventas')
+    output.seek(0)
+    
+    return send_file(output, download_name="Reporte_Ventas.xlsx", as_attachment=True)
 
 # =======================================================   
 
