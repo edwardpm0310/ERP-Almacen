@@ -1,5 +1,6 @@
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
+from flask_login import UserMixin
 
 db = SQLAlchemy()
 
@@ -83,3 +84,11 @@ class DetalleVenta(db.Model):
     precio_unitario = db.Column(db.Float, nullable=False)
 
     producto = db.relationship('Producto', backref='detalles_venta')
+
+class Usuario(UserMixin, db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(80), unique=True, nullable=False)
+    password = db.Column(db.String(200), nullable=False)  # En producción se hashea
+    nombre = db.Column(db.String(100))
+    rol = db.Column(db.String(20), default='vendedor')  # admin, vendedor, almacen
+    fecha_creacion = db.Column(db.DateTime, default=datetime.utcnow)

@@ -2,10 +2,20 @@ from flask import Flask, render_template, redirect, url_for, request, flash, sen
 from config import Config
 import pandas as pd
 from io import BytesIO
-from models import db, Proveedor, Producto, Compra, DetalleCompra, Cliente, Venta, DetalleVenta
+from models import db, Proveedor, Producto, Compra, DetalleCompra, Cliente, Venta, DetalleVenta, Usuario
 app = Flask(__name__)
 app.config.from_object(Config)
 db.init_app(app)
+from flask_login import LoginManager, login_user, logout_user, login_required, current_user
+
+# ===================== FLASK-LOGIN =====================
+login_manager = LoginManager()
+login_manager.login_view = 'login'
+login_manager.init_app(app)
+
+@login_manager.user_loader
+def load_user(user_id):
+    return Usuario.query.get(int(user_id))
 
 # ===================== CRUD PROVEEDORES =====================
 @app.route('/proveedores')
@@ -139,6 +149,7 @@ def index():
     return redirect(url_for('dashboard'))
 
 @app.route('/dashboard')
+@login_required   # ← Esto obliga a estar logueado
 def dashboard():
     total_productos = Producto.query.count()
     stock_bajo = Producto.query.filter(Producto.stock <= Producto.stock_minimo).count()
@@ -504,10 +515,61 @@ def export_ventas_excel():
     
     return send_file(output, download_name="Reporte_Ventas.xlsx", as_attachment=True)
 
+# ===================== AUTH =====================
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        
+        usuario = Usuario.query.filter_by(username=username).first()
+        
+        if usuario and usuario.password == password:
+            login_user(usuario)
+            flash(f'Bienvenido, {usuario.nombre}', 'success')
+            return redirect(url_for('dashboard'))
+        else:
+            flash('Usuario o contraseña incorrectos', 'danger')
+    
+    return render_template('auth/login.html')
+
+
+@app.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    flash('Sesión cerrada correctamente', 'info')
+    return redirect(url_for('login'))
+
+
+# Proteger rutas (requiere login)
+@app.before_request
+def require_login():
+    # Rutas públicas permitidas sin login
+    public_routes = ['login', 'static', 'register']
+    if request.endpoint and request.endpoint not in public_routes and not current_user.is_authenticated:
+        flash('Debes iniciar sesión para acceder', 'warning')
+        return redirect(url_for('login'))
+
 # =======================================================   
 
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
-    app.run(debug=True)
+        
+        # Crear usuario admin si no existe
+        if not Usuario.query.filter_by(username='admin').first():
+            admin = Usuario(
+                username='admin',
+                password='1234',
+                nombre='Administrador',
+                rol='admin'
+            )
+            db.session.add(admin)
+            db.session.commit()
+            print("✅ Usuario 'admin' creado correctamente (contraseña: 1234)")
+        else:
+            print("✅ Usuario admin ya existe")
     
+    app.run(debug=True)
